@@ -37,8 +37,6 @@ namespace GroboContainer.NUnitExtensions.Impl
             var suiteContext = suiteDescriptor.SuiteContext;
             var methodContext = new GroboTestMethodContextData(suiteDescriptor.LazyContainer);
 
-            GroboTestContextHolder.SetCurrentContext(suiteContext, methodContext);
-
             var suiteWrappers = test.GetSuiteWrappers();
             lock (suiteDescriptor)
             {
@@ -50,6 +48,8 @@ namespace GroboContainer.NUnitExtensions.Impl
                     suiteDescriptor.SetUpedSuiteWrappers.Add(suiteWrapper);
                 }
             }
+
+            GroboTestContextHolder.SetCurrentContext(suiteContext, methodContext);
 
             lock (testFixture)
             {
@@ -97,7 +97,7 @@ namespace GroboContainer.NUnitExtensions.Impl
             if (!suiteDescriptors.TryGetValue(suiteName, out var suiteDescriptor))
                 throw new InvalidOperationException($"Suite context is not set for: {suiteName}");
 
-            var methodContext = GroboTestContextHolder.ResetCurrentTestContext();
+            var methodContext = GroboTestContextHolder.GetCurrentMethodContext();
             if (methodContext.IsSetUpped)
             {
                 try
@@ -130,6 +130,9 @@ namespace GroboContainer.NUnitExtensions.Impl
             {
                 errors.Add(error);
             }
+
+            GroboTestContextHolder.ResetCurrentMethodContext();
+
             if (errors.Count > 0)
             {
                 var aggregateExceptionMessage = $"{errors.Count} TearDown methods failed.";
